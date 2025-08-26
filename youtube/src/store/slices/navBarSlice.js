@@ -12,10 +12,13 @@ export const navBarSlice = createSlice({
     updateNavStatus: (state, action) => {
       state.navBarStatus = !state.navBarStatus
     },
+    closeNavBar: (state, action) => {
+      state.navBarStatus = false
+    },
   },
 })
 
 // Action creators are generated for each case reducer function
-export const { updateNavStatus } = navBarSlice.actions
+export const { updateNavStatus, closeNavBar } = navBarSlice.actions
 
 export default navBarSlice.reducer
