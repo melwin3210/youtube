@@ -1,7 +1,27 @@
 import React, { useState } from 'react'
+import commentsData from '../constants/comments'
 
-const Comment = ({ avatar, name, time, text, likes, replies }) => {
+const Comment = ({ avatar, name, time, text, likes, replies, commentId, onAddReply, like }) => {
     const [showReplies, setShowReplies] = useState(false)
+    const [showReplyBox, setShowReplyBox] = useState(false)
+    const [replyText, setReplyText] = useState('')
+
+    const handleReply = () => {
+        if (replyText.trim()) {
+            const newReply = {
+                id: Date.now(),
+                avatar: 'https://yt3.ggpht.com/a/default-user=s28-c-k-c0x00ffffff-no-rj',
+                name: 'You',
+                time: 'now',
+                text: replyText,
+                likes: 0
+            }
+            onAddReply(commentId, newReply)
+            setReplyText('')
+            setShowReplyBox(false)
+            setShowReplies(true)
+        }
+    }
 
     return (
         <div className='flex gap-3 mb-4'>
@@ -13,15 +33,56 @@ const Comment = ({ avatar, name, time, text, likes, replies }) => {
                 </div>
                 <p className='text-sm mb-2'>{text}</p>
                 <div className='flex items-center gap-4 text-xs text-gray-600'>
-                    <button className='flex items-center gap-1 hover:bg-gray-100 px-2 py-1 rounded'>
+                    <button onClick={() => like(commentId)} className='flex items-center gap-1 hover:bg-gray-100 px-2 py-1 rounded cursor-pointer'>
                         <span>👍</span>
                         <span>{likes}</span>
                     </button>
-                    <button className='flex items-center gap-1 hover:bg-gray-100 px-2 py-1 rounded'>
+                    <button className='flex items-center gap-1 hover:bg-gray-100 px-2 py-1 rounded cursor-pointer'>
                         <span>👎</span>
                     </button>
-                    <button className='hover:bg-gray-100 px-2 py-1 rounded'>Reply</button>
+                    <button
+                        onClick={() => setShowReplyBox(!showReplyBox)}
+                        className='hover:bg-gray-100 px-2 py-1 rounded'
+                    >
+                        Reply
+                    </button>
                 </div>
+
+                {showReplyBox && (
+                    <div className='mt-3 flex gap-3'>
+                        <img
+                            src='https://yt3.ggpht.com/a/default-user=s28-c-k-c0x00ffffff-no-rj'
+                            alt='Your avatar'
+                            className='w-8 h-8 rounded-full flex-shrink-0'
+                        />
+                        <div className='flex-1'>
+                            <textarea
+                                value={replyText}
+                                onChange={(e) => setReplyText(e.target.value)}
+                                placeholder='Add a reply...'
+                                className='w-full border-b-2 border-gray-300 focus:border-blue-500 outline-none resize-none p-2 text-sm'
+                                rows='2'
+                            />
+                            <div className='flex justify-end gap-2 mt-2'>
+                                <button
+                                    onClick={() => {
+                                        setShowReplyBox(false)
+                                        setReplyText('')
+                                    }}
+                                    className='px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded'
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleReply}
+                                    className='px-3 py-1 text-sm bg-blue-600 text-white rounded hover:bg-blue-700'
+                                >
+                                    Reply
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {replies && replies.length > 0 && (
                     <div className='mt-2'>
                         <button
@@ -33,7 +94,7 @@ const Comment = ({ avatar, name, time, text, likes, replies }) => {
                         {showReplies && (
                             <div className='mt-3 ml-4 border-l-2 border-gray-200 pl-4'>
                                 {replies.map((reply, index) => (
-                                    <Comment key={index} {...reply} />
+                                    <Comment key={reply.id || index} {...reply} commentId={reply.id || index} onAddReply={onAddReply} like={like} />
                                 ))}
                             </div>
                         )}
@@ -46,47 +107,36 @@ const Comment = ({ avatar, name, time, text, likes, replies }) => {
 
 const Comments = () => {
     const [newComment, setNewComment] = useState('')
-    const [comments] = useState([
-        {
-            avatar: 'https://yt3.ggpht.com/a/default-user=s28-c-k-c0x00ffffff-no-rj',
-            name: 'John Doe',
-            time: '2 hours ago',
-            text: 'Great video! Really helpful content. Thanks for sharing this.',
-            likes: 24,
-            replies: [
-                {
-                    avatar: 'https://yt3.ggpht.com/a/default-user=s28-c-k-c0x00ffffff-no-rj',
-                    name: 'Jane Smith',
-                    time: '1 hour ago',
-                    text: 'I agree! This was exactly what I was looking for.',
-                    likes: 5,
-                    replies: [
-                        {
-                            avatar: 'https://yt3.ggpht.com/a/default-user=s28-c-k-c0x00ffffff-no-rj',
-                            name: 'Jane Smith',
-                            time: '1 hour ago',
-                            text: 'I agree! This was exactly what I was looking for.',
-                            likes: 5
-                        }
-                    ]
+    const [comments, setComments] = useState(commentsData)
+
+    const updateComment = (commentId, updateFn) => {
+        const updateRecursively = (comments) => {
+            return comments.map(comment => {
+                if (comment.id === commentId) {
+                    return updateFn(comment)
                 }
-            ]
-        },
-        {
-            avatar: 'https://yt3.ggpht.com/a/default-user=s28-c-k-c0x00ffffff-no-rj',
-            name: 'Mike Johnson',
-            time: '4 hours ago',
-            text: 'Could you make a follow-up video on this topic? Would love to see more advanced techniques.',
-            likes: 12
-        },
-        {
-            avatar: 'https://yt3.ggpht.com/a/default-user=s28-c-k-c0x00ffffff-no-rj',
-            name: 'Sarah Wilson',
-            time: '6 hours ago',
-            text: 'Amazing explanation! Finally understood this concept. Keep up the great work! 🔥',
-            likes: 8
+                if (comment.replies?.length > 0) {
+                    return { ...comment, replies: updateRecursively(comment.replies) }
+                }
+                return comment
+            })
         }
-    ])
+        setComments(updateRecursively(comments))
+    }
+
+    const addReplyToComment = (commentId, newReply) => {
+        updateComment(commentId, (comment) => ({
+            ...comment,
+            replies: [...(comment.replies || []), { ...newReply, replies: [] }]
+        }))
+    }
+
+    const addLikesToComment = (commentId) => {
+        updateComment(commentId, (comment) => ({
+            ...comment,
+            likes: comment.likes + 1
+        }))
+    }
 
     return (
         <div className='max-w-4xl  p-4'>
@@ -127,8 +177,8 @@ const Comments = () => {
 
             {/* Comments List */}
             <div>
-                {comments.map((comment, index) => (
-                    <Comment key={index} {...comment} />
+                {comments.map((comment) => (
+                    <Comment key={comment?.id} {...comment} commentId={comment?.id} onAddReply={addReplyToComment} like={addLikesToComment} />
                 ))}
             </div>
         </div>
