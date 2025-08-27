@@ -2,6 +2,7 @@ import React, { useEffect } from 'react'
 import { useDispatch } from 'react-redux';
 import { useSearchParams } from 'react-router-dom'
 import { closeNavBar } from '../store/slices/navBarSlice';
+import Chat from './Chat';
 
 const StreamVideo = () => {
   const [params] = useSearchParams();
@@ -12,7 +13,7 @@ const StreamVideo = () => {
   },[])
   const videoId = params.get('id');
   return (
-    <div className='h-full flex justify-center m-2'>
+    <div className='h-full flex justify-center m-2 w-full'>
       <iframe
         width="700"
         height="400"
@@ -23,6 +24,7 @@ const StreamVideo = () => {
         referrerPolicy="strict-origin-when-cross-origin"
         allowFullScreen
       ></iframe>
+      <Chat />
     </div>
   )
 }
