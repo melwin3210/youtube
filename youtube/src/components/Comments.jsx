@@ -110,9 +110,13 @@ const Comments = () => {
     const [comments, setComments] = useState(commentsData)
 
     const updateComment = (commentId, updateFn) => {
+        let found = false
         const updateRecursively = (comments) => {
+            if (found) return comments
             return comments.map(comment => {
+                if (found) return comment
                 if (comment.id === commentId) {
+                    found = true
                     return updateFn(comment)
                 }
                 if (comment.replies?.length > 0) {
