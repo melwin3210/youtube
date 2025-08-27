@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, useRef } from 'react'
 
 const Message = ({ name, text, color }) => {
   return (
@@ -17,6 +17,8 @@ const Chat = () => {
         { id: 2, name: 'Sarah', text: 'Great stream!', color: '#4ecdc4' },
     ]);
     const [userEnteredMessage, setUserEnteredMessage] = useState('');
+    const chatContainerRef = useRef(null);
+    const [isAtBottom, setIsAtBottom] = useState(true);
 
     const names = ['Alex', 'Emma', 'Mike', 'Lisa', 'Tom', 'Anna', 'Chris', 'Maya']
     const colors = ['#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4', '#feca57', '#ff9ff3', '#54a0ff', '#5f27cd']
@@ -36,18 +38,32 @@ const Chat = () => {
                 color: randomColor
             };
             const updatedMessages = [...prevMessages, newMessage];
-            return updatedMessages.length > 50 ? updatedMessages.slice(10) : updatedMessages;
+            return updatedMessages.length > 50 && isAtBottom ? updatedMessages.slice(10) : updatedMessages;
         });
-    }, 2000);
+    }, 500);
     return () => clearInterval(latestChatFetchInterval);
-  }, []);
+  }, [isAtBottom]);
+
+  useEffect(() => {
+    if (chatContainerRef.current && isAtBottom) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  const handleScroll = () => {
+    const container = chatContainerRef.current;
+    if (container) {
+      const isScrolledToBottom = container.scrollHeight - container.scrollTop <= container.clientHeight + 5;
+      setIsAtBottom(isScrolledToBottom);
+    }
+  };
 
   return (
     <div className='bg-white border border-gray-200 rounded-lg shadow-sm w-90 h-[72%]'>
       <div className='bg-gray-50 px-3 py-2 border-b border-gray-200'>
         <h3 className='text-sm font-semibold text-gray-700'>Live chat</h3>
       </div>
-      <div className='h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300'>
+      <div ref={chatContainerRef} onScroll={handleScroll} className='h-80 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300'>
         {chatMessages.map((message) => (
           <Message key={message.id} name={message.name} text={message.text} color={message.color} />
         ))}
@@ -66,6 +82,7 @@ const Chat = () => {
               },
             ]);
             setUserEnteredMessage('');
+            setIsAtBottom(true);
           }
         }}>
           <input
